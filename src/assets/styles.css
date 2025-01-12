@@ -1,0 +1,72 @@
+.app{
+  width: 1542px; 
+  height: 642px;
+  text-align: center;
+  margin: 50px 0px;
+}
+.td-width{
+  width: 257px;
+  height: 642px;
+}
+.td-widthTwo{
+  width: 255px;
+  height: 640px;
+  padding: 1px;
+  vertical-align: top;
+}
+.td-sty{
+  width: 202px;
+  height: 599px;
+  padding: 20px; 
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  border-radius:4px;
+}
+.td-styleTwo{
+  width: 200px;
+  height: 599px;
+  padding: 20px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  border-radius:4px;
+}
+.show-pannel{
+  width: 200px;
+  height: 73px;
+  border: 1px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  background-color: azure;
+}
+.icons{
+  width: 160px;
+  height: 33px; 
+  padding: 20px;
+}
+.buttons{
+  width: 200px;
+  display: flex;
+  overflow: hidden;
+  flex-wrap: wrap;
+}
+.button-box{
+  width: 35px;
+  height: 32px;
+  margin: 0 30px 10px 33px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.button-box2{
+  width: 94px;
+  height: 33px;
+  margin: 0 1px 30px 3px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.button{
+  width: 30px;
+}
+.button-two{
+  width: 30px;
+  margin: 0px;
+}
