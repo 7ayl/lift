@@ -1,102 +1,54 @@
 <script setup lang="ts">
-import { inject, ref, watch, type Ref } from 'vue';
+import { useElevatorStore } from '@/stores/pressInner.ts';
+import { storeToRefs } from 'pinia';
+import { computed, inject, ref, watch, type Ref } from 'vue';
 
-let openTimer: any
-let closeTimer: any
-let character = ref('关')
-
+const elevatorStore = useElevatorStore()
+const { opens, closes, currentFloors, operateElevator, handleFloors, elevatorStates } = elevatorStore
+const { activeUpIds, activeDownIds } = storeToRefs(elevatorStore)
 const props = defineProps({
-  currentElevator: Number,
-  currentFloor: ref<number>
+  id: {
+    type: Number,
+    required: true, // 确保 id 必须传递
+    // default: 1, // 设置默认值
+  },
 });
 
-const currentFloor = props.currentFloor?.value
-const buttonId = props.currentElevator ? props.currentElevator.toString() : '';
+const openIds = computed(() => elevatorStore.openIds)
+const closeIds = computed(() => elevatorStore.closeIds)
+const isDisabledButtons = computed(() => elevatorStore.isDisabledButtons)
+// console.log(isDisabledButtons.value);
 
-const open = ref(false);
-const close = ref(false);
+// const { openIds, closeIds } = elevatorStates[props.id!-1]
+const currentFloor = currentFloors[props.id!-1]
+// console.log(isDisabledButtons.value);
 
+// const isDisabledButton = isDisabledButtons.value[props.id!-1]
 
-async function operateElevator(action: 'open' | 'close') {
-  if (action === 'open') {
-    open.value = true;
-    close.value = false;
-    character.value = '开'
-    if (closeTimer) {
-      clearTimeout(closeTimer);
-      closeTimer = null;
-    }
-    openTimer = setTimeout(() => {
-      open.value = false;
-      openTimer = null;
-      character.value = '关'
-    }, 10000);
-  } else if (action === 'close') {
-    close.value = true;
-    open.value = false;
-    if (openTimer) {
-      clearTimeout(openTimer);
-      openTimer = null;
-    }
-    closeTimer = setTimeout(() => {
-      close.value = false;
-      closeTimer = null;
-    }, 5000);
-  }
-}
+// watch(isDisabledButton, (newValue, oldValue) => {
+//   console.log('count 变化了:', oldValue, '->', newValue);
+// });
 
-function handleFloors(buttonNum: number, currentFloor: number, currentElevator: number) {
-  const changeFloor = buttonNum - currentFloor;
-
-  if (changeFloor !== 0) {
-    console.log(`按了第${buttonNum}层`);
-
-    // 判断电梯是否在当前楼层
-    if (currentFloor !== buttonNum) {
-      upFloors(changeFloor, currentFloor)
-        .then((finalFloor) => {
-          console.log(`电梯到达目标楼层：${finalFloor}`);
-          // 在这里可以添加一些额外的操作，比如改变电梯状态等
-        })
-        .catch((error) => {
-          console.error(`电梯移动出现错误：${error}`);
-        });
-    } else {
-      console.log('电梯正在运行中，请等待...');
-    }
-  } else {
-    console.log('当前楼层就是目标楼层，无需移动电梯。');
-  }
-}
-
-function upFloors(changeFloor: number, currentFloor: number): Promise<number> {
-  return new Promise((resolve, reject) => {
-    let targetFloor = currentFloor + changeFloor;
-    let current = currentFloor;
-
-    const intervalId = setInterval(() => {
-      if (current < targetFloor) {
-        current++;
-        console.log(`电梯正在上行，当前楼层：${current}`);
-      } else if (current > targetFloor) {
-        current--;
-        console.log(`电梯正在下行，当前楼层：${current}`);
-      } else {
-        clearInterval(intervalId); // 停止定时器
-        resolve(current); // 返回最终楼层
-      }
-    }, 2000); // 模拟电梯每隔两秒移动一层
-  });
-}
 </script>
 
 <template>
-  <div class="buttons" :id="buttonId">
+  <div class="buttons" >
     <span v-for="buttonNumber in 20" :key="buttonNumber" class="button-box">
-      <el-button @click="handleFloors(buttonNumber, currentFloor!, currentElevator!)" class="button" type="info" plain>{{ buttonNumber }}</el-button>
+      <el-button 
+      @click="handleFloors(buttonNumber, currentFloors, props.id!)"
+      :disabled="isDisabledButtons[props.id! - 1].includes(buttonNumber)"
+      class="button" 
+      type="info"
+      plain
+      >{{ buttonNumber }}</el-button>
     </span>
     <span class="button-box">
-      <el-button @click="operateElevator('open')" class="button" type="warning" :plain="!open">
+      <el-button 
+      @click="operateElevator('open', opens, props.id!)" 
+      class="button" type="warning" 
+      :plain="openIds[props.id! - 1].includes(props.id)? !opens[props.id!-1].value : true"
+      :disabled="!(activeUpIds.length === 0 && activeDownIds.length === 0)"
+      >   
         <span>
           <CaretLeft style="width: 1em; height: 1em; margin-left: 1px" />
           <CaretRight style="width: 1em; height: 1em; margin-right: 1px" />
@@ -104,7 +56,12 @@ function upFloors(changeFloor: number, currentFloor: number): Promise<number> {
       </el-button>
     </span>
     <span class="button-box">
-      <el-button @click="operateElevator('close')" class="button" type="warning" :plain="!close">
+      <el-button 
+      @click="operateElevator('close', closes, props.id!)" 
+      class="button" type="warning" 
+      :plain="closeIds[props.id! - 1].includes(props.id)? !closes[props.id!-1].value : true"
+      :disabled="!(activeUpIds.length === 0 && activeDownIds.length === 0)"
+      >
         <span>
           <CaretRight style="width: 1em; height: 1em; margin-left: 1px;" />
           <CaretLeft style="width: 1em; height: 1em; margin-right: 1px;" />
@@ -118,7 +75,7 @@ function upFloors(changeFloor: number, currentFloor: number): Promise<number> {
     </span>
     <span class="button-box">
       <el-button class="button" type="primary" plain disabled>
-        {{ character }}
+        {{ openIds[props.id! - 1].includes(props.id) ? '开' : '关'}}
       </el-button>
     </span>
   </div>
